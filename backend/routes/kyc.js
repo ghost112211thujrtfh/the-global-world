@@ -12,8 +12,10 @@ const storage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
+
 const upload = multer({ storage });
 
+// 🔐 POST route to submit KYC
 router.post('/', auth, upload.array('documents', 3), async (req, res) => {
   const { aadhar, pan } = req.body;
   const documents = req.files.map((file) => file.path);
@@ -27,11 +29,12 @@ router.post('/', auth, upload.array('documents', 3), async (req, res) => {
     });
     await kyc.save();
     res.json({ msg: 'KYC submitted. Contact customer support for approval.', kyc });
-  } catch (attached err) {
+  } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
 });
 
+// 📄 GET route to check KYC status
 router.get('/status', auth, async (req, res) => {
   try {
     const kyc = await KYC.findOne({ userId: req.user.id });
